@@ -30,12 +30,11 @@ model = load_model()
 
 # Input features
 st.sidebar.header("House Features")
-income = st.sidebar.number_input("Avg. Area Income", value=65000.0)
-house_age = st.sidebar.number_input("Avg. Area House Age", value=6.0)
-rooms = st.sidebar.number_input("Avg. Area Number of Rooms", value=7.0)
-bedrooms = st.sidebar.number_input("Avg. Area Number of Bedrooms", value=4.0)
-population = st.sidebar.number_input("Area Population", value=40000.0)
-
+income = st.sidebar.number_input("Avg. Area Income", value=79545.45857431678)
+house_age = st.sidebar.number_input("Avg. Area House Age", value=5.682861321615587)
+rooms = st.sidebar.number_input("Avg. Area Number of Rooms", value=7.009188142792237)
+bedrooms = st.sidebar.number_input("Avg. Area Number of Bedrooms", value=4.09)
+population = st.sidebar.number_input("Area Population", value=23086.800502686456)
 # Preprocessing stats (these should match core/data.py ideally, hardcoding for simplicity here as example)
 # In a real app, you would load these from a file saved during training.
 MEAN_VALS = torch.tensor([65000.0, 6.0, 7.0, 4.0, 40000.0])
