@@ -60,6 +60,11 @@ if st.button("Predict Price"):
     
     st.success(f"Predicted Price: ${prediction:,.2f}")
 
+    # Debug Info
+    st.subheader("Debug Info")
+    st.write("Model output (raw / normalized):", prediction_norm)
+    st.write("Input tensor (normalized):", x_input)
+
     # Visualization of feature contribution (simple proxy via weights)
     st.subheader("Implementation Details")
     st.info("""
@@ -69,3 +74,31 @@ if st.button("Predict Price"):
     - Hidden Layer 2: 64 Neurons + ReLU
     - Output Layer: 1 Neuron (Price)
     """)
+
+# Runtime Comparison Section
+st.markdown("---")
+st.header("⚡ Runtime Comparison (CPU)")
+st.caption("Lower runtime is better. Measurements were taken offline using the same data and batch size.")
+
+metrics_path = os.path.join(os.path.dirname(__file__), 'runtime_metrics.json')
+
+if os.path.exists(metrics_path):
+    import json
+    with open(metrics_path, 'r') as f:
+        metrics = json.load(f)
+    
+    # Create DataFrame for display
+    df_metrics = pd.DataFrame(list(metrics.items()), columns=['Execution Mode', 'Avg Time (ms)'])
+    df_metrics = df_metrics.sort_values(by='Avg Time (ms)')
+
+    col1, col2 = st.columns([1, 2])
+    
+    with col1:
+        st.write("Average Training Step Time:")
+        st.dataframe(df_metrics, hide_index=True)
+    
+    with col2:
+        st.bar_chart(df_metrics.set_index('Execution Mode'))
+
+else:
+    st.warning("⚠️ No runtime metrics found. Run `python benchmark_runtime.py` to generate them.")
