@@ -3,7 +3,7 @@ import numpy as np
 
 def create_dummy_data():
     np.random.seed(42)
-    n_samples = 1000
+    n_samples = 20000  # Increased for benchmarking load
     
     data = {
         'Avg. Area Income': np.random.normal(60000, 10000, n_samples),

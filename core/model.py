@@ -5,11 +5,11 @@ class HousePriceNN(nn.Module):
         super().__init__()
         # Input features: 5
         self.net = nn.Sequential(
-            nn.Linear(5, 64),
+            nn.Linear(5, 256),
             nn.ReLU(),
-            nn.Linear(64, 64),
+            nn.Linear(256, 256),
             nn.ReLU(),
-            nn.Linear(64, 1)
+            nn.Linear(256, 1)
         )
 
     def forward(self, x):

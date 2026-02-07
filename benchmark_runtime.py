@@ -35,7 +35,8 @@ def measure_time(model, optimizer, dataloader, loss_fn, steps=20):
 
 def benchmark():
     print("Running Benchmarks...")
-    dataloader = get_dataloader(batch_size=32)
+    # Use drop_last=True to ensure constant batch size for torch.compile
+    dataloader = get_dataloader(batch_size=2048, drop_last=True)
     loss_fn = nn.MSELoss()
     metrics = {}
 
