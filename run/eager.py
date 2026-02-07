@@ -18,14 +18,14 @@ def run_eager():
 
     start_time = time.time()
     steps = 0
-    max_steps = 50
+    max_steps = 1000  # Increased for better accuracy
 
     model.train()
-    for epoch in range(5):  # Arbitrary epochs
+    for epoch in range(50):  # Increased epochs
         for x, y in dataloader:
             loss = train_step(model, optimizer, x, y, loss_fn)
             steps += 1
-            if steps % 10 == 0:
+            if steps % 100 == 0:
                 print(f"Step {steps}, Loss: {loss.item():.4f}")
             if steps >= max_steps:
                 break

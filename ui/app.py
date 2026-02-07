@@ -35,18 +35,28 @@ house_age = st.sidebar.number_input("Avg. Area House Age", value=5.6828613216155
 rooms = st.sidebar.number_input("Avg. Area Number of Rooms", value=7.009188142792237)
 bedrooms = st.sidebar.number_input("Avg. Area Number of Bedrooms", value=4.09)
 population = st.sidebar.number_input("Area Population", value=23086.800502686456)
-# Preprocessing stats (these should match core/data.py ideally, hardcoding for simplicity here as example)
-# In a real app, you would load these from a file saved during training.
-MEAN_VALS = torch.tensor([65000.0, 6.0, 7.0, 4.0, 40000.0])
-STD_VALS = torch.tensor([10000.0, 2.0, 1.0, 1.0, 10000.0])
+# Load stats
+stats_path = os.path.join(os.path.dirname(__file__), '..', 'training_stats.pt')
+if os.path.exists(stats_path):
+    stats = torch.load(stats_path)
+    MEAN_VALS = stats['feature_mean']
+    STD_VALS = stats['feature_std']
+    TARGET_MEAN = stats['target_mean']
+    TARGET_STD = stats['target_std']
+else:
+    st.error("Training stats not found! Please run training first.")
+    st.stop()
 
 if st.button("Predict Price"):
     # Normalize input
-    x_input = torch.tensor([income, house_age, rooms, bedrooms, population])
+    x_input = torch.tensor([income, house_age, rooms, bedrooms, population]).float()
     x_input = (x_input - MEAN_VALS) / (STD_VALS + 1e-6)
     
     with torch.no_grad():
-        prediction = model(x_input.unsqueeze(0)).item()
+        prediction_norm = model(x_input.unsqueeze(0)).item()
+    
+    # Denormalize output
+    prediction = (prediction_norm * TARGET_STD.item()) + TARGET_MEAN.item()
     
     st.success(f"Predicted Price: ${prediction:,.2f}")
 

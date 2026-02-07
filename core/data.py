@@ -16,10 +16,23 @@ class HousePriceDataset(Dataset):
         
         self.targets = self.df['Price'].values.astype('float32').reshape(-1, 1)
         
-        # Simple normalization (optional but good practice)
-        self.mean = self.features.mean(axis=0)
-        self.std = self.features.std(axis=0)
-        self.features = (self.features - self.mean) / (self.std + 1e-6)
+        # Normalize features
+        self.feature_mean = torch.tensor(self.features.mean(axis=0))
+        self.feature_std = torch.tensor(self.features.std(axis=0))
+        self.features = (self.features - self.feature_mean.numpy()) / (self.feature_std.numpy() + 1e-6)
+        
+        # Normalize targets
+        self.target_mean = torch.tensor(self.targets.mean(axis=0))
+        self.target_std = torch.tensor(self.targets.std(axis=0))
+        self.targets = (self.targets - self.target_mean.numpy()) / (self.target_std.numpy() + 1e-6)
+        
+        # Save stats
+        torch.save({
+            'feature_mean': self.feature_mean,
+            'feature_std': self.feature_std,
+            'target_mean': self.target_mean,
+            'target_std': self.target_std
+        }, 'training_stats.pt')
 
     def __len__(self):
         return len(self.df)
