@@ -41,5 +41,10 @@ def run_torchscript():
     end_time = time.time()
     print(f"TorchScript Mode finished in {end_time - start_time:.4f}s")
 
+    # Save model for UI
+    model_save_path = os.path.join(os.path.dirname(__file__), '../models/house_price_model_torchscript.pth')
+    torch.save(scripted_model.state_dict(), model_save_path)
+    print(f"Model saved to {model_save_path}")
+
 if __name__ == "__main__":
     run_torchscript()

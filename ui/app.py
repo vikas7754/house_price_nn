@@ -17,7 +17,7 @@ st.write("This app uses a PyTorch Neural Network trained on housing data to pred
 @st.cache_resource
 def load_model():
     model = HousePriceNN()
-    model_path = os.path.join(os.path.dirname(__file__), '..', 'house_price_model.pth')
+    model_path = os.path.join(os.path.dirname(__file__), '../models/', 'house_price_model_fx.pth')
     if os.path.exists(model_path):
         model.load_state_dict(torch.load(model_path))
         print("Loaded trained model.")

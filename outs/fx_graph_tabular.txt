@@ -1,0 +1,9 @@
+opcode       name    target    args      kwargs
+-----------  ------  --------  --------  --------
+placeholder  x       x         ()        {}
+call_module  net_0   net.0     (x,)      {}
+call_module  net_1   net.1     (net_0,)  {}
+call_module  net_2   net.2     (net_1,)  {}
+call_module  net_3   net.3     (net_2,)  {}
+call_module  net_4   net.4     (net_3,)  {}
+output       output  output    (net_4,)  {}

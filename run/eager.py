@@ -36,8 +36,9 @@ def run_eager():
     print(f"Eager Mode finished in {end_time - start_time:.4f}s")
     
     # Save model for UI
-    torch.save(model.state_dict(), 'house_price_model.pth')
-    print("Model saved to house_price_model.pth")
+    model_save_path = os.path.join(os.path.dirname(__file__), '../models/house_price_model_eager.pth')
+    torch.save(model.state_dict(), model_save_path)
+    print(f"Model saved to {model_save_path}")
 
 if __name__ == "__main__":
     run_eager()
