@@ -14,10 +14,12 @@ st.set_page_config(page_title="House Price Predictor", layout="wide")
 st.title("🏡 House Price Prediction Neural Network")
 st.write("This app uses a PyTorch Neural Network trained on housing data to predict prices.")
 
+models = ["house_price_model_fx.pth", "house_price_model_eager.pth", "house_price_model_torchscript.pth", "house_price_model_torch_compile.pth"]
+
 @st.cache_resource
-def load_model():
+def load_model(model_name):
     model = HousePriceNN()
-    model_path = os.path.join(os.path.dirname(__file__), '../models/', 'house_price_model_fx.pth')
+    model_path = os.path.join(os.path.dirname(__file__), '../models/', model_name)
     if os.path.exists(model_path):
         model.load_state_dict(torch.load(model_path))
         print("Loaded trained model.")
@@ -26,7 +28,16 @@ def load_model():
     model.eval()
     return model
 
-model = load_model()
+# Model Selection
+st.sidebar.header("Model Selection")
+selected_model = st.sidebar.selectbox(
+    "Choose a model:",
+    models,
+    index=0,  # Default to first model (house_price_model_fx.pth)
+    help="Select which trained model to use for predictions"
+)
+
+model = load_model(selected_model)
 
 # Input features
 st.sidebar.header("House Features")
