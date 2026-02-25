@@ -8,6 +8,7 @@ import pandas as pd
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from core.model import HousePriceNN
+from core.custom_op_model import HousePriceModelWithCustomOp
 
 st.set_page_config(page_title="House Price Predictor", layout="wide")
 
@@ -18,7 +19,10 @@ models = ["house_price_model_fx.pth", "house_price_model_eager.pth", "house_pric
 
 @st.cache_resource
 def load_model(model_name):
-    model = HousePriceNN()
+    if model_name == "house_price_model_fx.pth":
+        model = HousePriceModelWithCustomOp()
+    else:
+        model = HousePriceNN()
     model_path = os.path.join(os.path.dirname(__file__), '../models/', model_name)
     if os.path.exists(model_path):
         model.load_state_dict(torch.load(model_path))

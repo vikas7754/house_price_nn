@@ -1,8 +1,10 @@
 graph():
     %x : [num_users=1] = placeholder[target=x]
-    %net_0 : [num_users=1] = call_module[target=net.0](args = (%x,), kwargs = {})
-    %net_1 : [num_users=1] = call_module[target=net.1](args = (%net_0,), kwargs = {})
-    %net_2 : [num_users=1] = call_module[target=net.2](args = (%net_1,), kwargs = {})
-    %net_3 : [num_users=1] = call_module[target=net.3](args = (%net_2,), kwargs = {})
-    %net_4 : [num_users=1] = call_module[target=net.4](args = (%net_3,), kwargs = {})
-    return net_4
+    %base_model_net_0 : [num_users=1] = call_module[target=base_model.net.0](args = (%x,), kwargs = {})
+    %base_model_net_1 : [num_users=1] = call_module[target=base_model.net.1](args = (%base_model_net_0,), kwargs = {})
+    %base_model_net_2 : [num_users=1] = call_module[target=base_model.net.2](args = (%base_model_net_1,), kwargs = {})
+    %base_model_net_3 : [num_users=1] = call_module[target=base_model.net.3](args = (%base_model_net_2,), kwargs = {})
+    %base_model_net_4 : [num_users=1] = call_module[target=base_model.net.4](args = (%base_model_net_3,), kwargs = {})
+    %bias_tensor : [num_users=1] = get_attr[target=bias_tensor]
+    %custom_add : [num_users=1] = call_function[target=torch.ops.my_ops.custom_add](args = (%base_model_net_4, %bias_tensor), kwargs = {})
+    return custom_add

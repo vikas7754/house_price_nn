@@ -48,7 +48,7 @@ Run the profiling scripts to generate Chrome traces in `profiling/traces/`.
 ```bash
 python profiling/profile_eager.py
 python profiling/profile_torch_compile.py
-# ... etc
+python profiling/profile_custom_op_fx.py
 ```
 
 ### 4. Viewing Traces

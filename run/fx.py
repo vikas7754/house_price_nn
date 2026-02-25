@@ -13,12 +13,13 @@ from core.data import get_dataloader
 from core.model import HousePriceNN
 from core.train_step import train_step
 from tabulate import tabulate
-
+from core.custom_op_model import HousePriceModelWithCustomOp
 
 def run_fx():
     print("Running FX Symbolic Trace Execution...")
     dataloader = get_dataloader(batch_size=32)
-    model = HousePriceNN()
+    # Use the model with custom operator
+    model = HousePriceModelWithCustomOp()
 
     # Symbolic Trace
     # FX creates a GraphModule that is often faster interpretable Python code
