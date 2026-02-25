@@ -9,6 +9,9 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from core.model import HousePriceNN
 from core.custom_op_model import HousePriceModelWithCustomOp
+from core.device import get_device
+
+device = get_device()
 
 st.set_page_config(page_title="House Price Predictor", layout="wide")
 
@@ -25,10 +28,11 @@ def load_model(model_name):
         model = HousePriceNN()
     model_path = os.path.join(os.path.dirname(__file__), '../models/', model_name)
     if os.path.exists(model_path):
-        model.load_state_dict(torch.load(model_path, map_location='cpu'))
+        model.load_state_dict(torch.load(model_path, map_location=device))
         print("Loaded trained model.")
     else:
         print("No trained model found, using random weights.")
+    model.to(device)
     model.eval()
     return model
 
@@ -53,9 +57,9 @@ population = st.sidebar.number_input("Area Population", value=23086.800502686456
 # Load stats
 stats_path = os.path.join(os.path.dirname(__file__), '..', 'training_stats.pt')
 if os.path.exists(stats_path):
-    stats = torch.load(stats_path, map_location='cpu')
-    MEAN_VALS = stats['feature_mean']
-    STD_VALS = stats['feature_std']
+    stats = torch.load(stats_path, map_location=device)
+    MEAN_VALS = stats['feature_mean'].to(device)
+    STD_VALS = stats['feature_std'].to(device)
     TARGET_MEAN = stats['target_mean']
     TARGET_STD = stats['target_std']
 else:
@@ -64,9 +68,9 @@ else:
 
 if st.button("Predict Price"):
     # Normalize input
-    x_input = torch.tensor([income, house_age, rooms, bedrooms, population]).float()
+    x_input = torch.tensor([income, house_age, rooms, bedrooms, population], device=device).float()
     x_input = (x_input - MEAN_VALS) / (STD_VALS + 1e-6)
-    
+
     with torch.no_grad():
         prediction_norm = model(x_input.unsqueeze(0)).item()
     
@@ -92,7 +96,7 @@ if st.button("Predict Price"):
 
 # Runtime Comparison Section
 st.markdown("---")
-st.header("⚡ Runtime Comparison (CPU)")
+st.header(f"⚡ Runtime Comparison ({device.type.upper()})")
 st.caption("Lower runtime is better. Measurements were taken offline using the same data and batch size.")
 
 metrics_path = os.path.join(os.path.dirname(__file__), 'runtime_metrics.json')
