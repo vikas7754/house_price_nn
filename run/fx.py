@@ -14,10 +14,12 @@ from core.model import HousePriceNN
 from core.train_step import train_step
 from tabulate import tabulate
 from core.custom_op_model import HousePriceModelWithCustomOp
+from core.device import get_device
 
 def run_fx():
-    print("Running FX Symbolic Trace Execution...")
-    dataloader = get_dataloader(batch_size=32)
+    device = get_device()
+    print(f"Running FX Symbolic Trace Execution on {device}...")
+    dataloader = get_dataloader(batch_size=32, pin_memory=(device.type == 'cuda'))
     # Use the model with custom operator
     model = HousePriceModelWithCustomOp()
 
@@ -42,9 +44,12 @@ def run_fx():
         print(f"Generated code saved to {output_path_code}")
 
 
+    traced_model = traced_model.to(device)
     optimizer = torch.optim.Adam(traced_model.parameters(), lr=0.001)
     loss_fn = nn.MSELoss()
 
+    if device.type == 'cuda':
+        torch.cuda.synchronize()
     start_time = time.time()
     steps = 0
     max_steps = 50
@@ -52,6 +57,7 @@ def run_fx():
     traced_model.train()
     for _ in range(5):
         for x, y in dataloader:
+            x, y = x.to(device), y.to(device)
             loss = train_step(traced_model, optimizer, x, y, loss_fn)
             steps += 1
             if steps % 10 == 0:
@@ -61,6 +67,8 @@ def run_fx():
         if steps >= max_steps:
             break
 
+    if device.type == 'cuda':
+        torch.cuda.synchronize()
     end_time = time.time()
     print(f"FX Mode finished in {end_time - start_time:.4f}s")
 

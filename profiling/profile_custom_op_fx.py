@@ -9,28 +9,36 @@ from torch.profiler import profile, record_function, ProfilerActivity
 from core.data import get_dataloader
 from core.custom_op_model import HousePriceModelWithCustomOp
 from core.train_step import train_step
+from core.device import get_device
 
 def profile_fx():
-    print("Profiling FX Execution...")
-    dataloader = get_dataloader(batch_size=32)
+    device = get_device()
+    print(f"Profiling FX Execution on {device}...")
+    dataloader = get_dataloader(batch_size=32, pin_memory=(device.type == 'cuda'))
     model = HousePriceModelWithCustomOp()
     traced_model = torch.fx.symbolic_trace(model)
+    traced_model = traced_model.to(device)
     optimizer = torch.optim.Adam(traced_model.parameters(), lr=0.001)
     loss_fn = nn.MSELoss()
 
+    activities = [ProfilerActivity.CPU]
+    if device.type == 'cuda':
+        activities.append(ProfilerActivity.CUDA)
+
     traced_model.train()
-    
+
     # Warmup
     print("Warmup...")
     iter_loader = iter(dataloader)
     for _ in range(5):
         x, y = next(iter_loader)
+        x, y = x.to(device), y.to(device)
         train_step(traced_model, optimizer, x, y, loss_fn)
 
     print("Starting Profiler...")
     try:
         with profile(
-            activities=[ProfilerActivity.CPU],
+            activities=activities,
             record_shapes=True,
             with_stack=True
         ) as prof:
@@ -41,7 +49,7 @@ def profile_fx():
                     except StopIteration:
                         iter_loader = iter(dataloader)
                         x, y = next(iter_loader)
-                    
+                    x, y = x.to(device), y.to(device)
                     train_step(traced_model, optimizer, x, y, loss_fn)
     except Exception as e:
         print(f"Profiling error: {e}")

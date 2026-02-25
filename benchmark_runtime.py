@@ -7,8 +7,9 @@ import torch.fx
 from core.data import get_dataloader
 from core.model import HousePriceNN
 from core.train_step import train_step
+from core.device import get_device
 
-def measure_time(model, optimizer, dataloader, loss_fn, steps=20):
+def measure_time(model, optimizer, dataloader, loss_fn, device, steps=20):
     # Warmup
     iter_loader = iter(dataloader)
     for _ in range(5):
@@ -17,9 +18,12 @@ def measure_time(model, optimizer, dataloader, loss_fn, steps=20):
         except StopIteration:
             iter_loader = iter(dataloader)
             x, y = next(iter_loader)
+        x, y = x.to(device), y.to(device)
         train_step(model, optimizer, x, y, loss_fn)
 
     # Benchmark
+    if device.type == 'cuda':
+        torch.cuda.synchronize()
     start_time = time.time()
     for _ in range(steps):
         try:
@@ -27,48 +31,55 @@ def measure_time(model, optimizer, dataloader, loss_fn, steps=20):
         except StopIteration:
             iter_loader = iter(dataloader)
             x, y = next(iter_loader)
+        x, y = x.to(device), y.to(device)
         train_step(model, optimizer, x, y, loss_fn)
+    if device.type == 'cuda':
+        torch.cuda.synchronize()
     end_time = time.time()
-    
+
     avg_time_ms = ((end_time - start_time) / steps) * 1000
     return avg_time_ms
 
 def benchmark():
-    print("Running Benchmarks...")
+    device = get_device()
+    print(f"Running Benchmarks on {device}...")
     # Use drop_last=True to ensure constant batch size for torch.compile
-    dataloader = get_dataloader(batch_size=2048, drop_last=True)
+    dataloader = get_dataloader(batch_size=2048, drop_last=True, pin_memory=(device.type == 'cuda'))
     loss_fn = nn.MSELoss()
     metrics = {}
 
     # 1. Eager
     print("- Benchmarking Eager...")
-    model = HousePriceNN()
+    model = HousePriceNN().to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-    metrics["Eager"] = measure_time(model, optimizer, dataloader, loss_fn)
+    metrics["Eager"] = measure_time(model, optimizer, dataloader, loss_fn, device)
 
     # 2. torch.compile
     print("- Benchmarking torch.compile...")
-    model = HousePriceNN()
+    model = HousePriceNN().to(device)
     compiled_model = torch.compile(model)
     optimizer = torch.optim.Adam(compiled_model.parameters(), lr=0.001)
     # Trigger compilation with one step before warmup/benchmark just in case
     x_dummy, y_dummy = next(iter(dataloader))
+    x_dummy, y_dummy = x_dummy.to(device), y_dummy.to(device)
     train_step(compiled_model, optimizer, x_dummy, y_dummy, loss_fn)
-    metrics["torch.compile"] = measure_time(compiled_model, optimizer, dataloader, loss_fn)
+    metrics["torch.compile"] = measure_time(compiled_model, optimizer, dataloader, loss_fn, device)
 
     # 3. FX
     print("- Benchmarking FX...")
     model = HousePriceNN()
     traced_model = torch.fx.symbolic_trace(model)
+    traced_model = traced_model.to(device)
     optimizer = torch.optim.Adam(traced_model.parameters(), lr=0.001)
-    metrics["FX"] = measure_time(traced_model, optimizer, dataloader, loss_fn)
+    metrics["FX"] = measure_time(traced_model, optimizer, dataloader, loss_fn, device)
 
     # 4. TorchScript
     print("- Benchmarking TorchScript...")
     model = HousePriceNN()
     scripted_model = torch.jit.script(model)
+    scripted_model = scripted_model.to(device)
     optimizer = torch.optim.Adam(scripted_model.parameters(), lr=0.001)
-    metrics["TorchScript"] = measure_time(scripted_model, optimizer, dataloader, loss_fn)
+    metrics["TorchScript"] = measure_time(scripted_model, optimizer, dataloader, loss_fn, device)
 
     print("\nResults (ms/step):")
     for k, v in metrics.items():

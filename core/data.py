@@ -40,6 +40,6 @@ class HousePriceDataset(Dataset):
     def __getitem__(self, idx):
         return torch.tensor(self.features[idx]), torch.tensor(self.targets[idx])
 
-def get_dataloader(csv_file='housing.csv', batch_size=32, **kwargs):
+def get_dataloader(csv_file='housing.csv', batch_size=32, pin_memory=False, **kwargs):
     dataset = HousePriceDataset(csv_file)
-    return DataLoader(dataset, batch_size=batch_size, shuffle=True, **kwargs)
+    return DataLoader(dataset, batch_size=batch_size, shuffle=True, pin_memory=pin_memory, **kwargs)

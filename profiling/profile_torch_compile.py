@@ -8,28 +8,35 @@ from torch.profiler import profile, record_function, ProfilerActivity
 from core.data import get_dataloader
 from core.model import HousePriceNN
 from core.train_step import train_step
+from core.device import get_device
 
 def profile_torch_compile():
-    print("Profiling torch.compile Execution...")
-    dataloader = get_dataloader(batch_size=32)
-    model = HousePriceNN()
+    device = get_device()
+    print(f"Profiling torch.compile Execution on {device}...")
+    dataloader = get_dataloader(batch_size=32, pin_memory=(device.type == 'cuda'))
+    model = HousePriceNN().to(device)
     compiled_model = torch.compile(model)
     optimizer = torch.optim.Adam(compiled_model.parameters(), lr=0.001)
     loss_fn = nn.MSELoss()
 
+    activities = [ProfilerActivity.CPU]
+    if device.type == 'cuda':
+        activities.append(ProfilerActivity.CUDA)
+
     compiled_model.train()
-    
+
     # Warmup (important for compile to actually compile)
     print("Warmup...")
     iter_loader = iter(dataloader)
     for _ in range(5):
         x, y = next(iter_loader)
+        x, y = x.to(device), y.to(device)
         train_step(compiled_model, optimizer, x, y, loss_fn)
 
     print("Starting Profiler...")
     try:
         with profile(
-            activities=[ProfilerActivity.CPU],
+            activities=activities,
             record_shapes=True,
             with_stack=True
         ) as prof:
@@ -40,7 +47,7 @@ def profile_torch_compile():
                     except StopIteration:
                         iter_loader = iter(dataloader)
                         x, y = next(iter_loader)
-                    
+                    x, y = x.to(device), y.to(device)
                     train_step(compiled_model, optimizer, x, y, loss_fn)
     except Exception as e:
         print(f"Profiling error: {e}")

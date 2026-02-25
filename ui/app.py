@@ -25,7 +25,7 @@ def load_model(model_name):
         model = HousePriceNN()
     model_path = os.path.join(os.path.dirname(__file__), '../models/', model_name)
     if os.path.exists(model_path):
-        model.load_state_dict(torch.load(model_path))
+        model.load_state_dict(torch.load(model_path, map_location='cpu'))
         print("Loaded trained model.")
     else:
         print("No trained model found, using random weights.")
@@ -53,7 +53,7 @@ population = st.sidebar.number_input("Area Population", value=23086.800502686456
 # Load stats
 stats_path = os.path.join(os.path.dirname(__file__), '..', 'training_stats.pt')
 if os.path.exists(stats_path):
-    stats = torch.load(stats_path)
+    stats = torch.load(stats_path, map_location='cpu')
     MEAN_VALS = stats['feature_mean']
     STD_VALS = stats['feature_std']
     TARGET_MEAN = stats['target_mean']

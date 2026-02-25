@@ -8,27 +8,34 @@ from torch.profiler import profile, record_function, ProfilerActivity
 from core.data import get_dataloader
 from core.model import HousePriceNN
 from core.train_step import train_step
+from core.device import get_device
 
 def profile_eager():
-    print("Profiling Eager Execution...")
-    dataloader = get_dataloader(batch_size=32)
-    model = HousePriceNN()
+    device = get_device()
+    print(f"Profiling Eager Execution on {device}...")
+    dataloader = get_dataloader(batch_size=32, pin_memory=(device.type == 'cuda'))
+    model = HousePriceNN().to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     loss_fn = nn.MSELoss()
 
+    activities = [ProfilerActivity.CPU]
+    if device.type == 'cuda':
+        activities.append(ProfilerActivity.CUDA)
+
     model.train()
-    
+
     # Warmup
     print("Warmup...")
     iter_loader = iter(dataloader)
     for _ in range(5):
         x, y = next(iter_loader)
+        x, y = x.to(device), y.to(device)
         train_step(model, optimizer, x, y, loss_fn)
 
     print("Starting Profiler...")
     try:
         with profile(
-            activities=[ProfilerActivity.CPU],
+            activities=activities,
             record_shapes=True,
             with_stack=True
         ) as prof:
@@ -39,7 +46,7 @@ def profile_eager():
                     except StopIteration:
                         iter_loader = iter(dataloader)
                         x, y = next(iter_loader)
-                    
+                    x, y = x.to(device), y.to(device)
                     train_step(model, optimizer, x, y, loss_fn)
     except Exception as e:
         print(f"Profiling error: {e}")
