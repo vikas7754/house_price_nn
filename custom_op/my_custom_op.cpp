@@ -1,5 +1,5 @@
 #include <torch/script.h>
-#include <torch/autograd/profiler.h>
+#include <ATen/record_function.h>
 
 torch::Tensor custom_add(torch::Tensor a, torch::Tensor b) {
   RECORD_FUNCTION("custom_add_op", std::vector<c10::IValue>({a, b}));
