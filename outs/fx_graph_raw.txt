@@ -5,6 +5,8 @@ graph():
     %base_model_net_2 : [num_users=1] = call_module[target=base_model.net.2](args = (%base_model_net_1,), kwargs = {})
     %base_model_net_3 : [num_users=1] = call_module[target=base_model.net.3](args = (%base_model_net_2,), kwargs = {})
     %base_model_net_4 : [num_users=1] = call_module[target=base_model.net.4](args = (%base_model_net_3,), kwargs = {})
+    %scale_tensor : [num_users=1] = get_attr[target=scale_tensor]
+    %custom_mul : [num_users=1] = call_function[target=torch.ops.my_mul_ops.custom_mul](args = (%base_model_net_4, %scale_tensor), kwargs = {})
     %bias_tensor : [num_users=1] = get_attr[target=bias_tensor]
-    %custom_add : [num_users=1] = call_function[target=torch.ops.my_ops.custom_add](args = (%base_model_net_4, %bias_tensor), kwargs = {})
+    %custom_add : [num_users=1] = call_function[target=torch.ops.my_ops.custom_add](args = (%custom_mul, %bias_tensor), kwargs = {})
     return custom_add

@@ -1,11 +1,13 @@
-opcode         name              target             args                             kwargs
--------------  ----------------  -----------------  -------------------------------  --------
-placeholder    x                 x                  ()                               {}
-call_module    base_model_net_0  base_model.net.0   (x,)                             {}
-call_module    base_model_net_1  base_model.net.1   (base_model_net_0,)              {}
-call_module    base_model_net_2  base_model.net.2   (base_model_net_1,)              {}
-call_module    base_model_net_3  base_model.net.3   (base_model_net_2,)              {}
-call_module    base_model_net_4  base_model.net.4   (base_model_net_3,)              {}
-get_attr       bias_tensor       bias_tensor        ()                               {}
-call_function  custom_add        my_ops.custom_add  (base_model_net_4, bias_tensor)  {}
-output         output            output             (custom_add,)                    {}
+opcode         name              target                 args                              kwargs
+-------------  ----------------  ---------------------  --------------------------------  --------
+placeholder    x                 x                      ()                                {}
+call_module    base_model_net_0  base_model.net.0       (x,)                              {}
+call_module    base_model_net_1  base_model.net.1       (base_model_net_0,)               {}
+call_module    base_model_net_2  base_model.net.2       (base_model_net_1,)               {}
+call_module    base_model_net_3  base_model.net.3       (base_model_net_2,)               {}
+call_module    base_model_net_4  base_model.net.4       (base_model_net_3,)               {}
+get_attr       scale_tensor      scale_tensor           ()                                {}
+call_function  custom_mul        my_mul_ops.custom_mul  (base_model_net_4, scale_tensor)  {}
+get_attr       bias_tensor       bias_tensor            ()                                {}
+call_function  custom_add        my_ops.custom_add      (custom_mul, bias_tensor)         {}
+output         output            output                 (custom_add,)                     {}
