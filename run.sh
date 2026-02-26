@@ -35,6 +35,9 @@ uv run python profiling/profile_fx.py
 echo "Profiling TorchScript Mode..."
 uv run python profiling/profile_torchscript.py
 
+echo "Profiling Custom Op FX Mode..."
+uv run python profiling/profile_custom_op_fx.py
+
 # 3. Benchmarking
 echo ""
 echo "--- 3. Running Benchmarks ---"

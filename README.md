@@ -12,6 +12,12 @@ uv pip install -r requirements.txt
 pip install -r requirements.txt
 ```
 
+## Build custom C++ operator
+
+```bash
+cd custom_op && python setup.py build_ext --inplace
+```
+
 ## Structure
 
 - **core/**: Common logic (Model, Data, Training Step).

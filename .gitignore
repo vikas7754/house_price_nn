@@ -22,3 +22,5 @@ build/
 *.swp
 *.swo
 *.swn
+*.so
+/**/*.so
